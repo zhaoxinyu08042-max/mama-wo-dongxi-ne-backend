@@ -1,34 +1,34 @@
-# Node.js / Express 代理后端
+# mama-wo-dongxi-ne 后端 v2
 
-提供两个接口：
-- POST /api/speech-to-text
-- POST /api/vision-analyze
+多用户 · PostgreSQL · 习惯推荐
+
+## 接口
+
+| 方法 | 路径 | 说明 | 需要登录 |
+|---|---|---|---|
+| POST | /auth/register | 注册 | ✗ |
+| POST | /auth/login | 登录 | ✗ |
+| GET | /api/items | 获取物品列表（支持?q=搜索） | ✓ |
+| POST | /api/items | 新增物品 | ✓ |
+| PUT | /api/items/:id | 更新物品 | ✓ |
+| DELETE | /api/items/:id | 删除物品 | ✓ |
+| GET | /api/recommend | 习惯推荐（?category=证件&name=护照） | ✓ |
+| POST | /api/speech-to-text | 语音转文字 | ✗ |
+| POST | /api/vision-analyze | 图片识别 | ✗ |
+| GET | /health | 健康检查 | ✗ |
+
+## Railway 部署步骤
+1. 在同一 Railway 项目里加一个 PostgreSQL 服务
+2. Railway 会自动注入 DATABASE_URL 到后端服务
+3. Variables 里填写：
+   - OPENAI_API_KEY
+   - JWT_SECRET（随机长字符串）
+4. 部署后自动执行 migrate 建表
 
 ## 本地运行
-1. `npm install`
-2. `cp .env.example .env`
-3. 填入 `OPENAI_API_KEY`
-4. `npm start`
-
-## 接口返回格式
-
-### POST /api/speech-to-text
-```json
-{ "text": "护照放在书房抽屉" }
+```bash
+npm install
+cp .env.example .env   # 填入真实值
+npm run migrate
+npm start
 ```
-
-### POST /api/vision-analyze
-```json
-{
-  "object_name": "护照",
-  "caption": "检测到抽屉中的深色证件本",
-  "suggested_location": "书房抽屉或证件收纳盒"
-}
-```
-
-## 部署到 Railway
-1. 在 Railway 新建项目 → Deploy from GitHub Repo
-2. 选择此仓库
-3. Variables 里添加 `OPENAI_API_KEY`
-4. Settings → Networking → Generate Domain
-5. 把前端 `API_BASE` 改成生成的 Railway 域名 + `/api`
