@@ -6,19 +6,28 @@ import OpenAI from 'openai';
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const PORT = process.env.PORT || 3000;
+
+// Lazy init: create client per-request so missing key only fails at call time,
+// not at startup — server can boot and pass /health check without the key.
+function getClient() {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is not set. Add it in Railway → Variables.');
+  }
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 app.get('/health', (_req, res) => {
-  res.json({ ok: true });
+  res.json({ ok: true, key_configured: !!process.env.OPENAI_API_KEY });
 });
 
 app.post('/api/speech-to-text', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'file_required' });
+    const client = getClient();
 
     const audioFile = new File(
       [req.file.buffer],
@@ -40,6 +49,7 @@ app.post('/api/speech-to-text', upload.single('file'), async (req, res) => {
 app.post('/api/vision-analyze', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'file_required' });
+    const client = getClient();
 
     const base64 = req.file.buffer.toString('base64');
     const mime = req.file.mimetype || 'image/jpeg';
@@ -87,4 +97,5 @@ app.post('/api/vision-analyze', upload.single('file'), async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
+  console.log(`OPENAI_API_KEY: ${process.env.OPENAI_API_KEY ? 'configured ✓' : 'NOT SET ✗ — add in Railway Variables'}`);
 });
