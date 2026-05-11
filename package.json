@@ -2,7 +2,6 @@
   "name": "mama-wo-dongxi-ne-backend",
   "version": "2.0.0",
   "type": "module",
-  "main": "server.js",
   "scripts": {
     "start": "node db/migrate.js && node server.js",
     "migrate": "node db/migrate.js"
